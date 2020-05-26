@@ -76,7 +76,7 @@ const NotificationOriginal = Notification;
 function NotificationDecorated(title) {
 	const notification = {
 		_handleClick: [],
-		close() {},
+		close() { },
 		addEventListener(type, callback) {
 			if (type !== 'click') return;
 
@@ -115,7 +115,7 @@ const AudioOriginal = Audio;
 const beaconNotificationRegex = /beacon-notification\.(?:.*)$/;
 
 function createObserverCallback(tagName, callback) {
-	return function(records) {
+	return function (records) {
 		for (const record of records) {
 			for (const node of record.addedNodes) {
 				if (node.tagName === tagName) {
@@ -140,6 +140,16 @@ ipcRenderer.on('playPause', () => {
 	const el_play = document.querySelector(DomHooks.playbutton);
 	if (el_play)
 		el_play.click();
+});
+
+ipcRenderer.on('spacePressed', () => {
+	console.log('spacePressed');
+	const track = getCurrentTrack();
+
+	is_playing = !is_playing;
+	// Sends it to the other thread
+	console.log(track);
+	ipcRenderer.send(is_playing ? 'handlePlay' : 'handlePause', track);
 });
 
 ipcRenderer.on('seek', () => {
@@ -229,10 +239,14 @@ webview.addEventListener('click', (e) => {
 		is_playing = !paused;
 		console.log('Paused', paused);
 
-		const trackElement = webview.querySelector(DomHooks.showtitle);
-		let track = trackElement ? trackElement.innerText : '';
+		const track = getCurrentTrack();
 
 		console.log(track);
 		ipcRenderer.send(paused ? 'handlePause' : 'handlePlay', track);
 	}
 });
+
+function getCurrentTrack() {
+	const trackElement = webview.querySelector(DomHooks.showtitle);
+	return trackElement ? trackElement.innerText : '';
+}
